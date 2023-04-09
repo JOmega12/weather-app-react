@@ -1,9 +1,12 @@
 import React from 'react';
 import DayCard from './DayCard';
 import DegreeToggle from './DegreeToggle';
-import { WEATHER_URL, WEATHER_API } from '../constants';
+// import { WEATHER_URL, WEATHER_API } from '../constants';
 import WindSpeed from './WindSpeed';
+import WeatherService from '../services';
 
+
+const weather = new WeatherService();
 
 class ForecastContainer extends React.Component {
    state = {
@@ -14,42 +17,61 @@ class ForecastContainer extends React.Component {
       mileageType: 'mph'
    }
 
-   async componentDidMount() {
+   componentDidMount() {
       this.setState(({loading: true}))
-      try {
-         const response = await fetch(`${WEATHER_URL}${WEATHER_API}`); // this gets the data
-         if (response.ok) {
-            // console.log(response, 'response');
-            // const json = await response.json(); //this parses the data
-            const json = await response.json();
-            console.log(json, 'json');
-            const data = json.list
-               .filter(day => day.dt_txt.includes('00:00:00'))
-               .map(item => ({
-                  temp: item.main.temp,
-                  dt: item.dt,
-                  date: item.dt_txt,
-                  imgId: item.weather[0].id,
-                  desc: item.weather[0].description,
-                  feelsLike: item.main.feels_like,
-                  humidity: item.main.humidity,
-                  windSpeed: item.wind.speed
-               }));
-               console.log(data)
+      weather.fetchFiveDayForecast()
+         .then((res) => {
+            if (res && res.response.ok) {
                this.setState({
-                  dailyData: data,
+                  dailyData: res.data,
                   loading: false,
                });
-         } else {
-            //do something 
+            } else {
+               this.setState({ loading: false });
+            }
+         }, (error) => {
+            console.log(error);
             this.setState(({
                loading: false,
                error: true,
             }));
-         }
-      } catch(err) {
-         console.log('There is Error', err);
-      }
+         })
+
+
+
+
+
+      // try {
+      //    const response = await fetch(`${WEATHER_URL}${WEATHER_API}`); // this gets the data
+      //    if (response.ok) {
+      //       // console.log(response, 'response');
+      //       // const json = await response.json(); //this parses the data
+      //       const json = await response.json();
+      //       console.log(json, 'json');
+      //       const data = json.list
+      //          .filter(day => day.dt_txt.includes('00:00:00'))
+      //          .map(item => ({
+      //             temp: item.main.temp,
+      //             dt: item.dt,
+      //             date: item.dt_txt,
+      //             imgId: item.weather[0].id,
+      //             desc: item.weather[0].description,
+      //             feelsLike: item.main.feels_like,
+      //             humidity: item.main.humidity,
+      //             windSpeed: item.wind.speed
+      //          }));
+      //          console.log(data)
+
+      //    } else {
+      //       //do something 
+      //       this.setState(({
+      //          loading: false,
+      //          error: true,
+      //       }));
+      //    }
+      // } catch(err) {
+      //    console.log('There is Error', err);
+      // }
    }
 
    updateForecastDegree = ({target: {value}}) => {
