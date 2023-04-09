@@ -2,6 +2,7 @@ import React from 'react';
 import DayCard from './DayCard';
 import DegreeToggle from './DegreeToggle';
 import { WEATHER_URL, WEATHER_API } from '../constants';
+import WindSpeed from './WindSpeed';
 
 
 class ForecastContainer extends React.Component {
@@ -9,6 +10,8 @@ class ForecastContainer extends React.Component {
       dailyData: [],
       loading: false,
       error: false,
+      degreeType: 'fahrenheit',
+      mileageType: 'mph'
    }
 
    async componentDidMount() {
@@ -28,6 +31,9 @@ class ForecastContainer extends React.Component {
                   date: item.dt_txt,
                   imgId: item.weather[0].id,
                   desc: item.weather[0].description,
+                  feelsLike: item.main.feels_like,
+                  humidity: item.main.humidity,
+                  windSpeed: item.wind.speed
                }));
                console.log(data)
                this.setState({
@@ -46,17 +52,41 @@ class ForecastContainer extends React.Component {
       }
    }
 
+   updateForecastDegree = ({target: {value}}) => {
+      this.setState({ degreeType: value});
+   }
+
+   updateMileageType = ({target: {value}}) => {
+      this.setState({mileageType: value})
+   }
+
 
    render() {
-      const {loading, error, dailyData} = this.state
+      const {loading, error, dailyData, degreeType, mileageType} = this.state
 
       return(
-         <div>
-            <div>Forecast Container</div>
-            <DegreeToggle />
-            {!loading ? dailyData.map((item) => (
-               <DayCard data={item} key={item.dt}/>
-            )) : <div> Loading....</div>}
+         <div className='container mt-5 b-3'>
+            <h1 className='display-1 jumbotron bg-light py-5 mb-5 d-flex justify-content-center'>5 Day Forecast</h1>
+            <h5 className='text-muted d-flex justify-content-center'>Los Angeles, CA</h5>
+            <DegreeToggle 
+               updateForecastDegree={this.updateForecastDegree}
+               degreeType ={degreeType}
+            />
+            <WindSpeed 
+               updateMileageType = {this.updateMileageType}
+               mileageType = {mileageType}
+            />
+            <div className="row justify-content-center ">
+               {!loading ? dailyData.map((item) => (
+                  <DayCard 
+                     data={item} 
+                     key={item.dt}
+                     degreeType ={degreeType}
+                     mileageType = {mileageType}
+                  />
+               )) : <div> Loading....</div>}
+            </div>
+            {error && <h3 className='text-danger d-flex justify-content-center'>Error Loading Data 😔</h3>}
          </div>
       )
    }
